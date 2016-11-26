@@ -1,6 +1,9 @@
 """
 Implements the gridworld MDP.
 
+Harshal Priyadarshi.
+
+Code reused and modified from original author:
 Matthew Alger, 2015
 matthew.alger@anu.edu.au
 """
@@ -14,7 +17,7 @@ class Gridworld(object):
     Gridworld MDP.
     """
 
-    def __init__(self, grid_size, wind, discount):
+    def __init__(self, grid_size, wind, discount, expert_type):
         """
         grid_size: Grid size. int.
         wind: Chance of moving randomly. float.
@@ -28,6 +31,7 @@ class Gridworld(object):
         self.grid_size = grid_size
         self.wind = wind
         self.discount = discount
+        self.expert_type = expert_type
 
         # Preconstruct the transition probability array.
         self.transition_probability = np.array(
@@ -254,17 +258,19 @@ class Gridworld(object):
         random_start: Whether to start randomly (default False). bool.
         -> [[(state int, action int, reward float)]]
         """
+        if self.expert_type == 'uniform':
+            wind = self.wind
+        elif self.expert_type == 'varied':
+            assert 0.2 <= self.wind <= 0.8, 'Trust factor not within the range for varied expert... Read the docs'
+            threshold = (0.8 - self.wind)/0.6
+            p = rn.random()
+            if p < threshold:
+                wind = 0.2
+            elif p == threshold:
+                wind = self.wind
+            else:
+                wind = 0.8
 
-        wind = self.wind
-        '''
-        p = rn.random()
-        if p < self.wind:
-            wind = 0.2
-        elif p == self.wind:
-            wind = 0.5
-        else:
-            wind = 0.8
-        '''
 
         trajectories = []
         for _ in range(n_trajectories):

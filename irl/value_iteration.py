@@ -1,6 +1,9 @@
 """
 Find the value function associated with a policy. Based on Sutton & Barto, 1998.
 
+Harshal Priyadarshi.
+
+Code reused and modified from original author:
 Matthew Alger, 2015
 matthew.alger@anu.edu.au
 """

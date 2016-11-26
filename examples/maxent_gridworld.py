@@ -1,18 +1,25 @@
 """
 Run maximum entropy inverse reinforcement learning on the gridworld MDP.
 
+Harshal Priyadarshi.
+
+Code reused and modified from original author:
 Matthew Alger, 2015
 matthew.alger@anu.edu.au
 """
-
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]), 'irl'))
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]), 'utils'))
 import numpy as np
 import matplotlib.pyplot as plt
+import maxent as maxent
+import mdp.gridworld as gridworld
+from argument_parser import parse_arguments
 
-import irl.maxent as maxent
-import irl.mdp.gridworld as gridworld
 
-
-def main(grid_size, discount, n_trajectories, epochs, learning_rate):
+def main(grid_size, discount, n_trajectories, epochs, learning_rate, trajectory_length,
+         trust, expert_type, random_start):
     """
     Run maximum entropy inverse reinforcement learning on the gridworld MDP.
 
@@ -25,13 +32,12 @@ def main(grid_size, discount, n_trajectories, epochs, learning_rate):
     learning_rate: Gradient descent learning rate. float.
     """
 
-    wind = 0.5
-    trajectory_length = 3*grid_size
+    wind = 1 - trust
 
-    gw = gridworld.Gridworld(grid_size, wind, discount)
+    gw = gridworld.Gridworld(grid_size, wind, discount, expert_type)
     trajectories = gw.generate_trajectories(n_trajectories,
                                             trajectory_length,
-                                            gw.optimal_policy, random_start=True)
+                                            gw.optimal_policy, random_start=random_start)
     feature_matrix = gw.feature_matrix()
     ground_r = np.array([gw.reward(s) for s in range(gw.n_states)])
     r = maxent.irl(feature_matrix, gw.n_actions, discount,
@@ -50,4 +56,7 @@ def main(grid_size, discount, n_trajectories, epochs, learning_rate):
     plt.show()
 
 if __name__ == '__main__':
-    main(5, 0.01, 2000, 200, 0.01)
+    args = parse_arguments()
+    main(args.grid_size, args.discount_factor, args.num_trajectories,
+         args.epochs, args.learning_rate, args.trajectory_length,
+         args.trust, args.expert_type, args.random_start)
